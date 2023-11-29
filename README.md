@@ -3,21 +3,29 @@ a framework to render html dynamically in the frontend, based on JSON-dataobject
 
 # Why?
 
-In my current main-project I need to have a renderer for html-strings. So for example I load a html template directly from the database and want to render it on my page, without having to write complex javascript code to select single nodes, assign all variables and so on. I wanted to have a framework that renders my html strings in the frontend, without traces in the actual html-code.
-
+The Titan RenderProcessor gives you the ability to render html strings dynamically in your frontend, without having the overheat of a big framework. The renderer just exists of one single .js-file witch you can easily integrate in your own project. You can rapidly achieve results in developing dynamic html-components without taking care of querying elements, assigning click logic and so on. Titan RenderProcessor does this for you.
 
 # Usage
 
-The Titan RenderProcessor uses mainly vanilla webcomponents to process rendering. You can also use any html element for rendering, but it is recommended to use your own webcomponents 
+It is recommended to use vanilla webcomponents for rendering with Titan RenderProcessor. But you can also use any html element for rendering.
+
+## Basic: Integrate Titan RenderingProcessor
+
+For integrating Titan RenderProcessor in your project, you only have to implement the .js script of the RenderProcessor. For this example we do so by loading the script in the header of our html page:
 
 ``` html
 <html>
-  <head></head>
-  <body>
-    <test-component></test-component>
-  </body>
+  <head>
+    <script src="src/titan-renderprocessor.js"></scipt>
+  </head>
+  <body></body>
 </html>
 ```
+
+
+## Usage with webcomponents
+
+As said before, it is recommended to use webcomponents in your project. So we do 
 
 Create Custom Component:
 
