@@ -7,10 +7,6 @@ The Titan RenderProcessor gives you the ability to render html strings dynamical
 
 # Usage
 
-It is recommended to use vanilla webcomponents for rendering with Titan RenderProcessor. But you can also use any html element for rendering.
-
-## Basic: Integrate Titan RenderingProcessor
-
 For integrating Titan RenderProcessor in your project, you only have to implement the .js script of the RenderProcessor. For this example we do so by loading the script in the header of our html page:
 
 ``` html
@@ -21,6 +17,37 @@ For integrating Titan RenderProcessor in your project, you only have to implemen
   <body></body>
 </html>
 ```
+
+
+### Provided attributes
+
+The Titan RenderingProcessor provides the following html-attributes:
+
+- bind-text: binds a value as innertext
+- bind-class: binds a classname
+- bind-style: binds a value to the style attribute
+- bind-raw: binds a (html)-string as innerhtml
+- bind-click: binds a click-handler to the html element
+- args: provides the definition of arguments assigned to a click event
+
+Each attribute can simply handle a property of the context-object or a complex scripting argument. For simply assigning a property of the context-object you can use the attribute as follows:
+
+``` html
+<div bind-text="LastName"></div>
+```
+
+If you want, as example bind two properties of the dataobject to a html-element, you can code the binding-expression like this example:
+
+``` html
+<div bind-text="{[LastName] + ', ' + [FirstName]}"></div>
+```
+
+This example will result in a concatination of the property 'LastName' with the string ', ' and the property 'FirstName'.
+
+> [!TIP]
+> Always make sure, to wrap the expression inside curly brackets ({ }). If you want to reference properties of your context-object, always make sure to wrap the propertynames with square brackets ([ ]).
+
+
 
 
 ## Usage with webcomponents
