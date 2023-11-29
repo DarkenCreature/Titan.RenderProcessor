@@ -19,10 +19,22 @@ class TestComponent extends TitanComponent {
     super();
   }
 
+  // render method
   render(){
-    this.innerHTML = `
+    this.innerHTML = this.template;
+  }
+
+  // method to handle button click
+  pickColor(e, args){
+    alert(`you picked the color '${args.Name}'!`);
+    document.body.setAttribute('style', `background-color: ${args.HexCode};`);
+  }
+
+  // the template of the component
+  template = `
       <div>
         <h1>That are some random colors:</h1>
+        <h3>Pick a color to change background</h3>
         <ul style="list-style: none;">
           <li for-each="colors">
             <div style="display: flex">
@@ -36,6 +48,5 @@ class TestComponent extends TitanComponent {
         </ul>
       </div>
     `;
-  }
 }
 ```
