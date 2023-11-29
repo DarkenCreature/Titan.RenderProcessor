@@ -219,6 +219,7 @@ class TestComponent extends TitanComponent {
   // render method
   render(){
     this.innerHTML = this.template;
+    new TitanRenderProcessor().renderComponent(this);
   }
 
   // the template of the component
