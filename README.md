@@ -77,7 +77,7 @@ Let´s say we have the following html element in our document:
 
 ``` html
 <div id="demo">
-  <p>Welcome <span bind-text="LastName"></span> <span bind-text="FirstName"></span>!</p>
+  <p>Welcome <span bind-text="FirstName"></span> <span bind-text="LastName"></span>!</p>
 </div>
 ```
 
@@ -94,7 +94,7 @@ The content of the html-element then changes to this:
 
 ``` html
 <div id="demo">
-  <p>Welcome <span>Smith</span> <span>John</span>!</p>
+  <p>Welcome <span>John</span> <span>Smith</span>!</p>
 </div>
 ```
 
@@ -108,7 +108,7 @@ If you have a dataobject, providing an iteration property, like a array, you can
 
 ``` html
 <div id="demo">
-  <p>Welcome <span bind-text="LastName"></span> <span bind-text="FirstName"></span>!</p>
+  <p>Welcome <span bind-text="FirstName"></span> <span bind-text="LastName"></span>!</p>
   <ul>
     <li for-each="ProgrammingSkills" bind-text="language"></li>
   </ul>
@@ -136,7 +136,7 @@ Now the result of the rendering is changing the html-element to this:
 
 ``` html
 <div id="demo">
-  <p>Welcome <span>Smith</span> <span>John</span>!</p>
+  <p>Welcome <span>John</span> <span>Smith</span>!</p>
   <ul>
     <li>C#</li>
     <li>JavaScript</li>
