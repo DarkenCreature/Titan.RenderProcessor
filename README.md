@@ -182,7 +182,9 @@ The recommended way to use Titan RenderingProcessor is, to implement it in conte
 > [!NOTE]
 > In the following content, we make use of templates, defined in strings inside of our webcomponent. This is possible, but note, that this isn´t actual a good practice. Normally you would fetch the template from another ressource, like a database as example.
 
-To get startet with personal webcomponents, we create a custom component named "TestComponent":
+**Target:** our goal is to achieve a webcomponent witch renders a list of colors as list. The colors should have a name and a hex colorcode. Inside the list the colors should be shown as a round circle, following by a label with the name of the color.
+
+To get startet, we simply create a custom component named "TestComponent" and implement the TitanComponent base class:
 
 ``` javascript
 class TestComponent extends TitanComponent {
@@ -194,22 +196,24 @@ customElements.define('test-component', TestComponent);
 ```
 
 > [!IMPORTANT]
-> Titan RenderingProcessor provides a base class, called TitanComponent. This class already implements the needed class "HTMLElement". Because of this we only have to implement to base class and a constructor, calling the super-method.
-> Always make sure, to define the component by giving it a tag-name, for using it later in html.
+> Always make sure, to define the component by giving it a tag-name, for using it later in html. The Definition is made by calling "customElements.define([tag-name], [className]);"
 
-If you build your own webcomponents, it is recommended to use the provided base class. This is because it already implements the methods uses by several features of the RenderingProcessor.
+If you build your own webcomponents, it is recommended to use the provided base class as shown. This is because it already implements methods used by several features of the RenderingProcessor.
 
-Now our custom component already needs to have a html-template (witch we simply implement as a string-property of our component) and a render method as well. The render-method is called by the base class, when our component connects to the document (gets rendered in dom).
-
-> [!NOTE]
-> The base class (TitanComponent) is covering the connectedCallback method to call the render-method.
-
-If we implement all 
+Now we implement a template and the render method in our webcomponent. The render-method is called by the base class, when our component connects to the document (gets rendered in dom).
 
 ``` javascript
 class TestComponent extends TitanComponent {
   constructor(){
     super();
+    this.data = {
+      colors: [
+        { name: "Absolute Zero", hex: "#0048BA" },
+        { name: "Acid Green", hex: "#B0BF1A" },
+        { name: "Aero", hex: "#7CB9E8" },
+        { name: "Aero Blue", hex: "#C9FFE5" }
+      ]
+    };
   }
 
   // render method
@@ -217,11 +221,45 @@ class TestComponent extends TitanComponent {
     this.innerHTML = this.template;
   }
 
-  // method to handle button click
-  pickColor(e, args){
-    alert(`you picked the color '${args.Name}'!`);
-    document.body.setAttribute('style', `background-color: ${args.HexCode};`);
-  }
+  // the template of the component
+  template = `
+      <div>
+        <h1>That are some random colors:</h1>
+        <ul style="list-style: none;">
+          <!-- one list element for all colors -->
+          <li for-each="colors">
+            <div style="display: flex">
+              <!-- round colored point -->
+              <div style="width: 15px; height: 15px; border-radius: 50%; margin-right: 5px;"
+                bind-style="{'background-color: ' + [hex] + ';'}">
+              </div>
+              <!-- end point -->
+
+              <span bind-text="name"></span>
+            </div>
+          </li>
+          <!-- end list element -->
+        </ul>
+      </div>
+    `;
+}
+```
+
+> [!NOTE]
+> The base class (TitanComponent) is covering the connectedCallback method to call the render-method.
+
+Our webcomponent now renders a list of colors. If you want to extend the list of colors, feel free to add more colors in the dataobject. You can also make use of the following github-project, providing a json list of many colors (make sure to remove the quotes on the property names as done above): https://github.com/cheprasov/json-colors/blob/master/colors.json
+
+**Bonus:** Now we want to implement a little bit of interaction-logic to our webcomponent. Let us implement a click-method on each color in the list, wich changes the background-color of our page to the clicked color. For that we need to do following things:
+
+- bind a click-event to each list-item
+- implement a function in our webcomponent, handling the click event
+
+First we change our template of the component:
+
+``` javascript
+class TestComponent extends TitanComponent {
+  // [...]
 
   // the template of the component
   template = `
@@ -249,71 +287,26 @@ class TestComponent extends TitanComponent {
 }
 ```
 
+If you look at the template, you might notice the new binded arguments "bind-click" and "args". The "bind-click" argument defines the method to invoke on clicking the element. In this example it invokes the method "pickColor" in our webcomponent, witch we haven´t defined yet. The "args" attribute defines witch arguments we giving the method while invoking.
 
-# ===============================
-# ===============================
-# ===============================
+The current implementation of the args attribute means, that we provide an args-object with two properties: Name and HexCode. This properties get defined by the iteration element (properties name and hex). So the object witch we are submitting to the method looks like this:
 
+{ Name: [nameOfColor], HexCode: [hexCode] }
 
-
-
-With the call of the function we given the renderer a empty dataobject. This makes no sense, because the renderer then can not assign any data or structure to the provided element. To solve this problem you can assign any data to the provided object. Lets say we have a html element like this one:
-
-
-In this case we call the renderer by giving him the needed data for rendering this html-element:
-
-
-
-
-
-The attributes of the Titan RenderingProcessor all work the same way. You can assign a attribute to a specific html-element and the RenderingProcessor will interpret and process this attribute.
-
-A attribute is always interpreted with the current **context** in witch the RenderingProcessor stays. At the top level, in the default configuration (with the use of webcomponents), the context is assigned to the "data" property of the webcomponent. If your webcomponent doesn´t implement a data-attribute, the rendering-process will fail.
-
-> [!IMPORTANT]
-> You can call the RenderingProcessor without a webcomponent. If you do so, make sure to call it with a dataobject as context.
-
-If you have a html-element with an iterator-attribute like "for-each", the context of all child elements change to the child-elements of the iterated element. Lets say, in the constructor of your webcomponent, you assign a data object like this one:
+Now we can implement the method to handling the click in our webcomponent:
 
 ``` javascript
-class DemoComponent extends TitanComponent {
-  constructor(){
-    super();
-    this.data = {
-      FirstName: 'John',
-      LastName: 'Smith',
-      ProgrammingSkills: [
-        { language: 'C#', experience: 5 },
-        { language: 'JavaScript', experience: 5 },
-        { language: 'Python', experience: 1 },
-        { language: 'MySQL', experience: 4 }
-      ]
-    };
-  }
+class TestComponent extends TitanComponent {
+  // [...]
 
-  template = `
-    <div>
-      <h1>
-        Hello! I´m <span bind-text="FirstName"></span> <span bind-text="LastName"></span>!
-      </h1>
-      <p>My skills are:</p>
-      <ul>
-        <li for-each="ProgrammingSkills" bind-text="language"></li>
-      </ul>
-    </div>
-  `:
+  // method to handle button click
+  pickColor(e, args){
+    alert(`you picked the color '${args.Name}'!`);
+    document.body.setAttribute('style', `background-color: ${args.HexCode};`);
+  }
 }
 ```
 
+If you implement methods to handle click-events in your project, the method is always the same schema: the method takes the source element witch is clicked (e) and takes the object with the provided arguments (args), defined in the html structure. If you haven´t defined arguments, the args object is a empty object ({ }). It is never *null*.
 
-
-### bind attributes
-
-bind-class: binds a value as class attribute
-
-
-# types of binding values
-
-You can define attributes on two different way:
-
-## take object-property: 
+Now our webcomponent is finished. It shows a list of colors and changes the background every time you click on one of the colors in the list.
