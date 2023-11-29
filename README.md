@@ -81,6 +81,20 @@ A attribute is always interpreted with the current context in witch the Renderin
 
 If you have a html-element with an iterator-attribute like "for-each", the context of all child elements change to the child-elements of the iterated element. Lets say, in the constructor of your webcomponent, you assign a data object like this one:
 
+``` json
+{
+  FirstName: 'John',
+  LastName: 'Smith',
+  ProgrammingSkills: [
+    { language: 'C#', experience: 5 },
+    { language: 'JavaScript', experience: 5 },
+    { language: 'Python', experience: 1 },
+    { language: 'MySQL', experience: 4 }
+  ]
+}
+```
+
+
 ``` javascript
 constructor(){
   super();
