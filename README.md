@@ -73,14 +73,116 @@ class TestComponent extends TitanComponent {
 ```
 
 
-# Supported Attributes
+# Basics of rendering
+
+The rendering-process can simply be started by calling the "renderComponent" method on a instance of the "RenderProcessor" class. The method takes two parameters:
+- the object you want to render
+- a dataobject with the data you want to use for rendering
+
+### Rendering specific element with specific data
+
+Let´s say we have the following html element in our document:
+
+``` html
+<div id="demo">
+  <p>Welcome <span bind-text="LastName"></span> <span bind-text="FirstName"></span>!</p>
+</div>
+```
+
+We can call the rendering by executing the following javascript code:
+
+``` javascript
+new RenderProcessor().renderComponent(
+  document.getElementById('demo'),
+  { LastName: 'Smith', FirstName: 'John' }
+);
+```
+
+The content of the html-element then changes to this:
+
+``` html
+<div id="demo">
+  <p>Welcome <span>Smith</span> <span>John</span>!</p>
+</div>
+```
+
+As you see, we have rendered our html-element with the given dataobject. We can now provide different values to render the html-element with different data.
+
+The important thing here is, that in the final html result, if you inspect your site, it is not possible to comprehend what the html template was looked like. So you can´t manipulate the bindings in the inspector.
+
+### Rendering specific element with a iteration
+
+If you have a dataobject, providing an iteration property, like a array, you can render each element of this array as seperate html-elements. To do so we edit our html-elemnt as follows:
+
+``` html
+<div id="demo">
+  <p>Welcome <span bind-text="LastName"></span> <span bind-text="FirstName"></span>!</p>
+  <ul>
+    <li for-each="ProgrammingSkills" bind-text="language"></li>
+  </ul>
+</div>
+```
+
+Now we can render this element providing a more complex dataobject:
+
+``` javascript
+new RenderProcessor().renderComponent(
+  document.getElementById('demo'),
+  {
+    LastName: 'Smith', FirstName: 'John',
+    ProgrammingSkills: [
+      { language: 'C#', experience: 5 },
+      { language: 'JavaScript', experience: 5 },
+      { language: 'Python', experience: 1 },
+      { language: 'MySQL', experience: 4 }
+    ]
+  }
+);
+```
+
+Now the result of the rendering is changing the html-element to this:
+
+``` html
+<div id="demo">
+  <p>Welcome <span>Smith</span> <span>John</span>!</p>
+  <ul>
+    <li>C#</li>
+    <li>JavaScript</li>
+    <li>Python</li>
+    <li>MySQL</li>
+  </ul>
+</div>
+```
+
+
+
+
+
+
+
+# =====================
+# =====================
+# =====================
+# =====================
+
+
+
+
+With the call of the function we given the renderer a empty dataobject. This makes no sense, because the renderer then can not assign any data or structure to the provided element. To solve this problem you can assign any data to the provided object. Lets say we have a html element like this one:
+
+
+In this case we call the renderer by giving him the needed data for rendering this html-element:
+
+
+
+
 
 The attributes of the Titan RenderingProcessor all work the same way. You can assign a attribute to a specific html-element and the RenderingProcessor will interpret and process this attribute.
 
-A attribute is always interpreted with the current context in witch the RenderingProcessor stays. In the default configuration (with the use of webcomponents), the context is assigned to the "data" property of the webcomponent.
+A attribute is always interpreted with the current **context** in witch the RenderingProcessor stays. At the top level, in the default configuration (with the use of webcomponents), the context is assigned to the "data" property of the webcomponent. If your webcomponent doesn´t implement a data-attribute, the rendering-process will fail.
 
 > [!IMPORTANT]
-> Crucial information necessary for users to succeed.
+> You can call the RenderingProcessor without a webcomponent. If you do so, make sure to call it with a dataobject as context.
 
 If you have a html-element with an iterator-attribute like "for-each", the context of all child elements change to the child-elements of the iterated element. Lets say, in the constructor of your webcomponent, you assign a data object like this one:
 
