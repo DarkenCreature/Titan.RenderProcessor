@@ -1,20 +1,20 @@
-# Titan.RenderProcessor
+# Titan.TitanRenderProcessor
 a framework to render html dynamically in the frontend, based on JSON-dataobjects and vanilla js webcomponents
 
 # Why?
 
-The Titan RenderProcessor gives you the ability to render html strings dynamically in your frontend, without having the overheat of a big framework. The renderer just exists of one single .js-file witch you can easily integrate in your own project. You can rapidly achieve results in developing dynamic html-components without taking care of querying elements, assigning click logic and so on. Titan RenderProcessor does this for you just with a couple of html attributes.
+The Titan TitanRenderProcessor gives you the ability to render html strings dynamically in your frontend, without having the overheat of a big framework. The renderer just exists of one single .js-file witch you can easily integrate in your own project. You can rapidly achieve results in developing dynamic html-components without taking care of querying elements, assigning click logic and so on. Titan TitanRenderProcessor does this for you just with a couple of html attributes.
 
 # Installation & usage
 
 ### Installation
 
-For integrating Titan RenderProcessor in your project, you only have to implement the .js script of the RenderProcessor. For this example we do so by loading the script in the header of our html page:
+For integrating Titan TitanRenderProcessor in your project, you only have to implement the .js script of the TitanRenderProcessor. For this example we do so by loading the script in the header of our html page:
 
 ``` html
 <html>
   <head>
-    <script src="src/RenderProcessor.js"/>
+    <script src="titan-renderer.js"/>
   </head>
   <body></body>
 </html>
@@ -61,11 +61,11 @@ These are getting explained in more detail in the following part of the document
 
 # Basics of rendering
 
-The rendering-process can simply be started by calling the "renderComponent" method on a instance of the "RenderProcessor" class. The method takes in two parameters:
+The rendering-process can simply be started by calling the "renderComponent" method on a instance of the "TitanRenderProcessor" class. The method takes in two parameters:
 - the object you want to render
 - a dataobject with the data you want to use for rendering
 
-The dataobject-parameter is optional (default *null*). If you don´t submit a dataobject to the method, the Titan RenderProcessor uses the "data"-property of the given element. In case your using a queried html element, this property might raise an error, because the elements usally don´t have a "data"-property assigned. So in this case you have to make sure, to always provide a specific dataobject.
+The dataobject-parameter is optional (default *null*). If you don´t submit a dataobject to the method, the Titan TitanRenderProcessor uses the "data"-property of the given element. In case your using a queried html element, this property might raise an error, because the elements usally don´t have a "data"-property assigned. So in this case you have to make sure, to always provide a specific dataobject.
 
 If you are working with webcomponents as recommended, it is good practice, to assign the "data"-property to your webcomponent and don´t submit a other object to the RenderingProcessor. By doing so, you make sure the RenderingProcessor always uses the "data"-property of your webcomponents. This gets explained in more details later.
 
@@ -82,7 +82,7 @@ Let´s say we have the following html element in our document:
 We can call the rendering by executing the following javascript code:
 
 ``` javascript
-new RenderProcessor().renderComponent(
+new TitanRenderProcessor().renderComponent(
   document.getElementById('demo'),
   { LastName: 'Smith', FirstName: 'John' }
 );
@@ -116,7 +116,7 @@ If you have a dataobject, providing an iteration property, like a array, you can
 Now we can render this element providing a more complex dataobject:
 
 ``` javascript
-new RenderProcessor().renderComponent(
+new TitanRenderProcessor().renderComponent(
   document.getElementById('demo'),
   {
     LastName: 'Smith', FirstName: 'John',
