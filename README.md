@@ -102,7 +102,7 @@ As you see, we have rendered our html-element with the given dataobject. We can 
 
 The important thing here is, that in the final html result, if you inspect your site, it is not possible to comprehend what the html template was looked like. So you can´t manipulate the bindings in the inspector.
 
-### Rendering specific element with a iteration
+### Example: rendering specific element with a iteration
 
 If you have a dataobject, providing an iteration property, like a array, you can render each element of this array as seperate html-elements. To do so we edit our html-elemnt as follows:
 
@@ -146,26 +146,65 @@ Now the result of the rendering is changing the html-element to this:
 </div>
 ```
 
+In the above example we iterated over a array of objects. In this case we can, as demonstrated, use the properties of any child element. But if we have a dataobject providing an array with strings only, you have no property to use for the binding. In this case you can use the self operator ($) to reference to the value of the iteration element (the currently iterated string).
+
+Let us take a look at a example. We have the same dataobject, as above, but this time the skills are only strings, not objects:
+
+``` javascript
+new TitanRenderProcessor().renderComponent(
+  document.getElementById('demo'),
+  {
+    LastName: 'Smith', FirstName: 'John',
+    ProgrammingSkills: [
+      'C#', 'JavaScript', 'Python', 'MySQL'
+    ]
+  }
+);
+```
+
+In our html-template we now use the self-operator, to bind the string as inner text:
+
+``` html
+<div id="demo">
+  <p>Welcome <span bind-text="FirstName"></span> <span bind-text="LastName"></span>!</p>
+  <ul>
+    <li for-each="ProgrammingSkills" bind-text="$"></li>
+  </ul>
+</div>
+```
 
 
 
+# Usage of webcomponents
 
+The recommended way to use Titan RenderingProcessor is, to implement it in context of webcomponents. Because of this, we will take a look on how to write such a component with the use of the framework.
 
+> [!NOTE]
+> In the following content, we make use of templates, defined in strings inside of our webcomponent. This is possible, but note, that this isn´t actual a good practice. Normally you would fetch the template from another ressource, like a database as example.
 
-# =====================
-# =====================
-# =====================
-# =====================
+To get startet with personal webcomponents, we create a custom component named "TestComponent":
 
+``` javascript
+class TestComponent extends TitanComponent {
+  constructor(){
+    super();
+  }
+}
+customElements.define('test-component', TestComponent);
+```
 
+> [!IMPORTANT]
+> Titan RenderingProcessor provides a base class, called TitanComponent. This class already implements the needed class "HTMLElement". Because of this we only have to implement to base class and a constructor, calling the super-method.
+> Always make sure, to define the component by giving it a tag-name, for using it later in html.
 
+If you build your own webcomponents, it is recommended to use the provided base class. This is because it already implements the methods uses by several features of the RenderingProcessor.
 
+Now our custom component already needs to have a html-template (witch we simply implement as a string-property of our component) and a render method as well. The render-method is called by the base class, when our component connects to the document (gets rendered in dom).
 
-## Usage with webcomponents
+> [!NOTE]
+> The base class (TitanComponent) is covering the connectedCallback method to call the render-method.
 
-As said before, it is recommended to use webcomponents in your project. So we do 
-
-Create Custom Component:
+If we implement all 
 
 ``` javascript
 class TestComponent extends TitanComponent {
