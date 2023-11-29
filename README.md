@@ -50,56 +50,6 @@ This example will result in a concatination of the property 'LastName' with the 
 
 
 
-## Usage with webcomponents
-
-As said before, it is recommended to use webcomponents in your project. So we do 
-
-Create Custom Component:
-
-``` javascript
-class TestComponent extends TitanComponent {
-  constructor(){
-    super();
-  }
-
-  // render method
-  render(){
-    this.innerHTML = this.template;
-  }
-
-  // method to handle button click
-  pickColor(e, args){
-    alert(`you picked the color '${args.Name}'!`);
-    document.body.setAttribute('style', `background-color: ${args.HexCode};`);
-  }
-
-  // the template of the component
-  template = `
-      <div>
-        <h1>That are some random colors:</h1>
-        <h3>Pick a color to change background</h3>
-        <ul style="list-style: none;">
-          <!-- one list element for all colors -->
-          <li for-each="colors">
-            <div style="display: flex">
-              <!-- round colored point with click handler -->
-              <div style="width: 15px; height: 15px; border-radius: 50%; margin-right: 5px;"
-                bind-style="{'background-color: ' + [hex] + ';'}"
-                bind-click="pickColor" args="Name=name,HexCode=hex">
-              </div>
-              <!-- end point -->
-
-              <span bind-text="name"></span>
-            </div>
-          </li>
-          <!-- end list element -->
-        </ul>
-      </div>
-    `;
-}
-```
-
-
 # Basics of rendering
 
 The rendering-process can simply be started by calling the "renderComponent" method on a instance of the "RenderProcessor" class. The method takes two parameters:
@@ -191,6 +141,64 @@ Now the result of the rendering is changing the html-element to this:
 # =====================
 # =====================
 # =====================
+
+
+
+
+
+## Usage with webcomponents
+
+As said before, it is recommended to use webcomponents in your project. So we do 
+
+Create Custom Component:
+
+``` javascript
+class TestComponent extends TitanComponent {
+  constructor(){
+    super();
+  }
+
+  // render method
+  render(){
+    this.innerHTML = this.template;
+  }
+
+  // method to handle button click
+  pickColor(e, args){
+    alert(`you picked the color '${args.Name}'!`);
+    document.body.setAttribute('style', `background-color: ${args.HexCode};`);
+  }
+
+  // the template of the component
+  template = `
+      <div>
+        <h1>That are some random colors:</h1>
+        <h3>Pick a color to change background</h3>
+        <ul style="list-style: none;">
+          <!-- one list element for all colors -->
+          <li for-each="colors">
+            <div style="display: flex">
+              <!-- round colored point with click handler -->
+              <div style="width: 15px; height: 15px; border-radius: 50%; margin-right: 5px;"
+                bind-style="{'background-color: ' + [hex] + ';'}"
+                bind-click="pickColor" args="Name=name,HexCode=hex">
+              </div>
+              <!-- end point -->
+
+              <span bind-text="name"></span>
+            </div>
+          </li>
+          <!-- end list element -->
+        </ul>
+      </div>
+    `;
+}
+```
+
+
+# ===============================
+# ===============================
+# ===============================
 
 
 
