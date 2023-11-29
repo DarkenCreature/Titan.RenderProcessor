@@ -32,7 +32,6 @@ class TestComponent extends TitanComponent {
 
   // the template of the component
   template = `
-      ``` html
       <div>
         <h1>That are some random colors:</h1>
         <h3>Pick a color to change background</h3>
@@ -53,7 +52,6 @@ class TestComponent extends TitanComponent {
           <!-- end list element -->
         </ul>
       </div>
-      ```
     `;
 }
 ```
