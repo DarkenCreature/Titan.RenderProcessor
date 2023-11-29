@@ -12,7 +12,7 @@ For integrating Titan RenderProcessor in your project, you only have to implemen
 ``` html
 <html>
   <head>
-    <script src="src/titan-renderprocessor.js"></scipt>
+    <script src="src/titan-renderprocessor.js"/>
   </head>
   <body></body>
 </html>
