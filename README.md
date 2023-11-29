@@ -5,14 +5,16 @@ a framework to render html dynamically in the frontend, based on JSON-dataobject
 
 The Titan RenderProcessor gives you the ability to render html strings dynamically in your frontend, without having the overheat of a big framework. The renderer just exists of one single .js-file witch you can easily integrate in your own project. You can rapidly achieve results in developing dynamic html-components without taking care of querying elements, assigning click logic and so on. Titan RenderProcessor does this for you just with a couple of html attributes.
 
-# Usage
+# Installation & usage
+
+### Installation
 
 For integrating Titan RenderProcessor in your project, you only have to implement the .js script of the RenderProcessor. For this example we do so by loading the script in the header of our html page:
 
 ``` html
 <html>
   <head>
-    <script src="src/titan-renderprocessor.js"/>
+    <script src="src/RenderProcessor.js"/>
   </head>
   <body></body>
 </html>
@@ -21,14 +23,12 @@ For integrating Titan RenderProcessor in your project, you only have to implemen
 
 ### Provided attributes
 
-The Titan RenderingProcessor provides the following html-attributes:
+The Titan RenderingProcessor provides the following simple html-attributes:
 
 - bind-text: binds a value as innertext
-- bind-class: binds a classname
+- bind-class: binds a value as classname
 - bind-style: binds a value to the style attribute
 - bind-raw: binds a (html)-string as innerhtml
-- bind-click: binds a click-handler to the html element
-- args: provides the definition of arguments assigned to a click event
 
 Each attribute can simply handle a property of the context-object or a complex scripting argument. For simply assigning a property of the context-object you can use the attribute as follows:
 
@@ -47,16 +47,29 @@ This example will result in a concatination of the property 'LastName' with the 
 > [!WARNING]
 > If you are using calculations instead of simply referencing a property of the context-object, always make sure, to wrap the expression inside curly brackets ({ }). If you want to reference properties of your context-object, always make sure to wrap the propertynames with square brackets ([ ]).
 
+Also the framwork provides some more complex attributes:
+
+- bind-click: binds a click-handler to the html element
+- bind-target: specifies the target of the click-event (default: component)
+- args: provides the definition of arguments, submitted to a click event
+- bind-rerender: marks the section to be rerendered after the named event is raised
+
+These are getting explained in more detail in the following part of the documentation.
+
 
 
 
 # Basics of rendering
 
-The rendering-process can simply be started by calling the "renderComponent" method on a instance of the "RenderProcessor" class. The method takes two parameters:
+The rendering-process can simply be started by calling the "renderComponent" method on a instance of the "RenderProcessor" class. The method takes in two parameters:
 - the object you want to render
 - a dataobject with the data you want to use for rendering
 
-### Rendering specific element with specific data
+The dataobject-parameter is optional (default *null*). If you don´t submit a dataobject to the method, the Titan RenderProcessor uses the "data"-property of the given element. In case your using a queried html element, this property might raise an error, because the elements usally don´t have a "data"-property assigned. So in this case you have to make sure, to always provide a specific dataobject.
+
+If you are working with webcomponents as recommended, it is good practice, to assign the "data"-property to your webcomponent and don´t submit a other object to the RenderingProcessor. By doing so, you make sure the RenderingProcessor always uses the "data"-property of your webcomponents. This gets explained in more details later.
+
+### Example: rendering specific element with specific data
 
 Let´s say we have the following html element in our document:
 
