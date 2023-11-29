@@ -3,5 +3,20 @@ a framework to render html dynamically in the frontend, based on JSON-dataobject
 
 
 ``` html
-<h1>Hello World!</h1>
+<html>
+  <head></head>
+  <body>
+    <test-component></test-component>
+  </body>
+</html>
+```
+
+Create Custom Component:
+
+``` javascript
+class TestComponent extends TitanComponent {
+  constructor(){
+    super();
+  }
+}
 ```
