@@ -12,9 +12,11 @@ The Titan TitanRenderProcessor gives you the ability to render html strings dyna
 For integrating Titan TitanRenderProcessor in your project, you only have to implement the .js script of the TitanRenderProcessor. For this example we do so by loading the script in the header of our html page:
 
 ``` html
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
-    <script src="titan-renderer.js"/>
+    <meta charset="UTF-8">
+  	<script src="titan-renderer.js"></script>
   </head>
   <body></body>
 </html>
