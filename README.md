@@ -44,8 +44,8 @@ If you want, as example bind two properties of the dataobject to a html-element,
 
 This example will result in a concatination of the property 'LastName' with the string ', ' and the property 'FirstName'.
 
-> [!TIP]
-> Always make sure, to wrap the expression inside curly brackets ({ }). If you want to reference properties of your context-object, always make sure to wrap the propertynames with square brackets ([ ]).
+> [!WARNING]
+> If you are using calculations instead of simply referencing a property of the context-object, always make sure, to wrap the expression inside curly brackets ({ }). If you want to reference properties of your context-object, always make sure to wrap the propertynames with square brackets ([ ]).
 
 
 
