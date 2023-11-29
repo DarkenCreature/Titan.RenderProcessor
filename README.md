@@ -79,47 +79,50 @@ The attributes of the Titan RenderingProcessor all work the same way. You can as
 
 A attribute is always interpreted with the current context in witch the RenderingProcessor stays. In the default configuration (with the use of webcomponents), the context is assigned to the "data" property of the webcomponent.
 
+> [!IMPORTANT]
+> Crucial information necessary for users to succeed.
+
 If you have a html-element with an iterator-attribute like "for-each", the context of all child elements change to the child-elements of the iterated element. Lets say, in the constructor of your webcomponent, you assign a data object like this one:
 
-``` json
-{
-  FirstName: 'John',
-  LastName: 'Smith',
-  ProgrammingSkills: [
-    { language: 'C#', experience: 5 },
-    { language: 'JavaScript', experience: 5 },
-    { language: 'Python', experience: 1 },
-    { language: 'MySQL', experience: 4 }
-  ]
-}
-```
-
-
 ``` javascript
-constructor(){
-  super();
-  this.data = {
-    FirstName: 'John',
-    LastName: 'Smith',
-    ProgrammingSkills: [
-      { language: 'C#', experience: 5 },
-      { language: 'JavaScript', experience: 5 },
-      { language: 'Python', experience: 1 },
-      { language: 'MySQL', experience: 4 }
-    ]
-  };
-}
+class DemoComponent extends TitanComponent {
+  constructor(){
+    super();
+    this.data = {
+      FirstName: 'John',
+      LastName: 'Smith',
+      ProgrammingSkills: [
+        { language: 'C#', experience: 5 },
+        { language: 'JavaScript', experience: 5 },
+        { language: 'Python', experience: 1 },
+        { language: 'MySQL', experience: 4 }
+      ]
+    };
+  }
 
-template = `
-  <div>
-    <h1>
-      Hello! I´m <span bind-text="FirstName"></span> <span bind-text="LastName"></span>!
-    </h1>
-    <p>My skills are:</p>
-    <ul>
-      <li for-each="ProgrammingSkills" bind-text="language"></li>
-    </ul>
-  </div>
-`:
+  template = `
+    <div>
+      <h1>
+        Hello! I´m <span bind-text="FirstName"></span> <span bind-text="LastName"></span>!
+      </h1>
+      <p>My skills are:</p>
+      <ul>
+        <li for-each="ProgrammingSkills" bind-text="language"></li>
+      </ul>
+    </div>
+  `:
+}
 ```
 
+
+
+### bind attributes
+
+bind-class: binds a value as class attribute
+
+
+# types of binding values
+
+You can define attributes on two different way:
+
+## take object-property: 
