@@ -36,15 +36,20 @@ class TestComponent extends TitanComponent {
         <h1>That are some random colors:</h1>
         <h3>Pick a color to change background</h3>
         <ul style="list-style: none;">
+          <!-- one list element for all colors -->
           <li for-each="colors">
             <div style="display: flex">
+              <!-- round colored point with click handler -->
               <div style="width: 15px; height: 15px; border-radius: 50%; margin-right: 5px;"
                 bind-style="{'background-color: ' + [hex] + ';'}"
                 bind-click="pickColor" args="Name=name,HexCode=hex">
               </div>
+              <!-- end point -->
+
               <span bind-text="name"></span>
             </div>
           </li>
+          <!-- end list element -->
         </ul>
       </div>
     `;
