@@ -1,9 +1,9 @@
 # Titan.RenderProcessor
-a framework to render html dynamically in the frontend, based on JSON-dataobjects
+a framework to render html dynamically in the frontend, based on JSON-dataobjects and vanilla js webcomponents
 
 # Why?
 
-The Titan RenderProcessor gives you the ability to render html strings dynamically in your frontend, without having the overheat of a big framework. The renderer just exists of one single .js-file witch you can easily integrate in your own project. You can rapidly achieve results in developing dynamic html-components without taking care of querying elements, assigning click logic and so on. Titan RenderProcessor does this for you.
+The Titan RenderProcessor gives you the ability to render html strings dynamically in your frontend, without having the overheat of a big framework. The renderer just exists of one single .js-file witch you can easily integrate in your own project. You can rapidly achieve results in developing dynamic html-components without taking care of querying elements, assigning click logic and so on. Titan RenderProcessor does this for you just with a couple of html attributes.
 
 # Usage
 
@@ -71,3 +71,41 @@ class TestComponent extends TitanComponent {
     `;
 }
 ```
+
+
+# Supported Attributes
+
+The attributes of the Titan RenderingProcessor all work the same way. You can assign a attribute to a specific html-element and the RenderingProcessor will interpret and process this attribute.
+
+A attribute is always interpreted with the current context in witch the RenderingProcessor stays. In the default configuration (with the use of webcomponents), the context is assigned to the "data" property of the webcomponent.
+
+If you have a html-element with an iterator-attribute like "for-each", the context of all child elements change to the child-elements of the iterated element. Lets say, in the constructor of your webcomponent, you assign a data object like this one:
+
+``` javascript
+constructor(){
+  super();
+  this.data = {
+    FirstName: 'John',
+    LastName: 'Smith',
+    ProgrammingSkills: [
+      { language: 'C#', experience: 5 },
+      { language: 'JavaScript', experience: 5 },
+      { language: 'Python', experience: 1 },
+      { language: 'MySQL', experience: 4 }
+    ]
+  };
+}
+
+template = `
+  <div>
+    <h1>
+      Hello! I´m <span bind-text="FirstName"></span> <span bind-text="LastName"></span>!
+    </h1>
+    <p>My skills are:</p>
+    <ul>
+      <li for-each="ProgrammingSkills" bind-text="language"></li>
+    </ul>
+  </div>
+`:
+```
+
