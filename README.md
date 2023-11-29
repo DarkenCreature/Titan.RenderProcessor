@@ -1,4 +1,4 @@
-# Titan.TitanRenderProcessor
+# TitanRenderProcessor
 a framework to render html dynamically in the frontend, based on JSON-dataobjects and vanilla js webcomponents
 
 # Why?
