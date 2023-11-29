@@ -1,5 +1,4 @@
 class TitanRenderProcessor {
-
     renderComponent(comp, dataObj = null) {
         comp.querySelectorAll('[bind-rerender]').forEach(el => {
             el.template = el.innerHTML;
