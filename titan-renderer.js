@@ -47,11 +47,26 @@ class TitanRenderProcessor {
         ];
 
         var renderer = this;
+		
+		// render ifs
+		element.querySelectorAll(`[if]:not([for-each])`).forEach(e => renderer.renderIf(e, context, contextHistory));
+		
+		// render bindings
         contexts.forEach(c => {
             if (element.hasAttribute(c.tag)) { renderer[c.method](element, context, contextHistory); }
             element.querySelectorAll(`[${c.tag}]`).forEach(e => renderer[c.method](e, context, contextHistory));
         });
     }
+	
+	renderIf(e, c, cH) {
+		var path = e.getAttribute('if');
+        var value = this.dissolveBinding(path, e, c, cH);
+		if(!value) {
+			e.parentElement.removeChild(e);
+		} else {
+			e.removeAttribute('if');
+		}
+	}
 
     renderForEachLoops(element, context, contextHistory) {
         // register inner html as template and assign template
