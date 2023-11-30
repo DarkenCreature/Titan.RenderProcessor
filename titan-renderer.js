@@ -1,4 +1,5 @@
 class TitanRenderProcessor {
+
     renderComponent(comp, dataObj = null) {
         comp.querySelectorAll('[bind-rerender]').forEach(el => {
             el.template = el.innerHTML;
@@ -38,8 +39,11 @@ class TitanRenderProcessor {
             { tag: 'bind-text', method: 'bindText' },
             { tag: 'bind-raw', method: 'bindRaw' },
             { tag: 'bind-class', method: 'bindClass' },
+            { tag: 'bind-attribute', method: 'bindAttribute' },
+            { tag: 'bind-value', method: 'bindValue' },
 			{ tag: 'bind-style', method: 'bindStyle' },
-            { tag: 'bind-click', method: 'bindClickEvent' }
+            { tag: 'bind-click', method: 'bindClickEvent' },
+            { tag: 'bind-change', method: 'bindChangeEvent' }
         ];
 
         var renderer = this;
@@ -52,10 +56,12 @@ class TitanRenderProcessor {
     renderForEachLoops(element, context, contextHistory) {
         // register inner html as template and assign template
         var iterator = element.getAttribute('for-each');
+		var ifExpr = element.hasAttribute('if') ? element.getAttribute('if') : null;
         var holder = element.parentElement;
         holder.template = holder.innerHTML;
         holder.tempForEachTemplate = element.outerHTML;
         element.removeAttribute('for-each');
+        element.removeAttribute('if');
 
         var currHistory = [];
         contextHistory.forEach(e => { currHistory.push(e); });
@@ -77,50 +83,76 @@ class TitanRenderProcessor {
         currHistory.push(tempDataObj);
 
         tempDataObj.forEach(obj => {
-            element.insertAdjacentHTML('beforebegin', holder.tempForEachTemplate);
+			if(ifExpr == null || this.dissolveBinding(ifExpr, tempNewEl, obj, currHistory)) {
+				element.insertAdjacentHTML('beforebegin', holder.tempForEachTemplate);
 
-            var tempNewEl = holder.querySelector('[for-each]');
-            tempNewEl.removeAttribute('for-each');
+				var tempNewEl = holder.querySelector('[for-each]');
+				tempNewEl.removeAttribute('for-each');
+				tempNewEl.removeAttribute('if');
 
-            this.render(tempNewEl, obj, currHistory);
-            this.renderBindings(tempNewEl, obj, currHistory);
+				this.render(tempNewEl, obj, currHistory);
+				this.renderBindings(tempNewEl, obj, currHistory);
+			}
         });
 
         holder.removeChild(element);
         this.renderBindings(holder, context, currHistory);
     }
 
-    bindText(e, context, contextHistory) {
-        var path = e.getAttribute('bind-raw');
-        e.innerText = this.getBindingValue(context, contextHistory, e.getAttribute('bind-text'));
+    bindText(e, c, cH) {
+		var path = e.getAttribute('bind-text');
+        var value = this.dissolveBinding(path, e, c, cH);
+        e.innerText = value;
         e.removeAttribute('bind-text');
     }
 
     bindRaw(e, c, cH) {
         var path = e.getAttribute('bind-raw');
-        var value = ((path.substring(0, 1) == "{") ? this.getBindingExpression(c, cH, path) : this.getBindingValue(c, cH, path));
+        var value = this.dissolveBinding(path, e, c, cH);
         e.innerHTML = value;
         e.removeAttribute('bind-raw');
     }
 
     bindClass(e, c, cH) {
         var path = e.getAttribute('bind-class');
-        var value = ((path.substring(0, 1) == "{") ? this.getBindingExpression(c, cH, path) : this.getBindingValue(c, cH, path));
+        var value = this.dissolveBinding(path, e, c, cH);
         if ((value ?? '') != '') {
             e.classList.add(value);
         }
         e.removeAttribute('bind-class');
     }
 	
+	bindAttribute(e, c, cH) {
+        var path = e.getAttribute('bind-attribute');
+        var value = this.dissolveBinding(path, e, c, cH);
+        if ((value ?? '') != '') {
+			e.setAttribute(value, '');
+        }
+        e.removeAttribute('bind-attribute');
+    }
+	
+	bindValue(e, c, cH) {
+        var path = e.getAttribute('bind-value');
+        var value = this.dissolveBinding(path, e, c, cH);
+        if ((value ?? '') != '') {
+			e.value = value;
+        }
+        e.removeAttribute('bind-value');
+    }
+	
 	bindStyle(e, c, cH) {
 		var path = e.getAttribute('bind-style');
-        var value = ((path.substring(0, 1) == "{") ? this.getBindingExpression(c, cH, path) : this.getBindingValue(c, cH, path));
+        var value = this.dissolveBinding(path, e, c, cH);
         if ((value ?? '') != '') {
 			e.setAttribute('style',
 				e.hasAttribute('style') ? e.getAttribute('style') + ' ' + value : value
 			);
         }
         e.removeAttribute('bind-style');
+	}
+
+	dissolveBinding(path, e, c, cH){
+		return ((path.substring(0, 1) == "{") ? this.getBindingExpression(c, cH, path) : this.getBindingValue(c, cH, path));
 	}
 
     getBindingExpression(context, contextHistory, path) {
@@ -161,10 +193,58 @@ class TitanRenderProcessor {
         }
     }
 
+	bindChangeEvent(e, c, cH) {
+		var path = e.getAttribute('bind-change');
+        var value = this.dissolveBinding(path, e, c, cH);
+        if (value || null && value || '' || path.substring(0, 1) == "{") {
+            value = value;
+        } else {
+            value = path;
+        }
+
+        if (value != null && value != '')
+        {
+            e.clickHandler = {
+                method: value,
+                target: e.closest(`[ttn-role="${(e.getAttribute('bind-target') ?? 'component')}"]`),
+                args: {}
+            };
+			this.fetchArgs(e, c, cH);
+
+            e.addEventListener('change', function () {
+				this.clickHandler.args.value = this.value;
+                this.clickHandler.target[this.clickHandler.method](this, this.clickHandler.args);
+            });
+            e.style.cursor = 'pointer';
+        }
+
+        e.removeAttribute('bind-change');
+        e.removeAttribute('bind-target');
+        e.removeAttribute('args');
+	}
+	
+	fetchArgs(e, c, cH) {
+		if (e.getAttribute('args') != null) {
+            e.getAttribute('args').split(',').forEach(a => {
+				var argName = a;
+                var argValue = null;
+
+                if (a.split('=').length == 2) {
+					argName = a.split('=')[0];
+                    argValue = this.getBindingValue(c, cH, a.split('=')[1]);
+                } else {
+					argValue = this.getBindingValue(c, cH, a);
+                }
+
+                e.clickHandler.args[argName] = argValue;
+            });
+        }
+	}
+
     bindClickEvent(e, c, cH) {
 
         var path = e.getAttribute('bind-click');
-        var value = ((path.substring(0, 1) == "{") ? this.getBindingExpression(c, cH, path) : this.getBindingValue(c, cH, path));
+        var value = this.dissolveBinding(path, e, c, cH);
         if (value || null && value || '' || path.substring(0, 1) == "{") {
             value = value;
         } else {
@@ -178,23 +258,7 @@ class TitanRenderProcessor {
                 target: e.closest(`[ttn-role="${(e.getAttribute('bind-target') ?? 'component')}"]`),
                 args: {}
             };
-
-            if (e.getAttribute('args') != null) {
-                e.getAttribute('args').split(',').forEach(a => {
-                    var argName = a;
-                    var argValue = null;
-
-                    if (a.split('=').length == 2) {
-                        argName = a.split('=')[0];
-                        argValue = this.getBindingValue(c, cH, a.split('=')[1]);
-                    } else {
-                        // argValue = context[a];
-                        argValue = this.getBindingValue(c, cH, a);
-                    }
-
-                    e.clickHandler.args[argName] = argValue;
-                });
-            }
+			this.fetchArgs(e, c, cH);
 
             e.addEventListener('click', function () {
                 this.clickHandler.target[this.clickHandler.method](this, this.clickHandler.args);
@@ -208,6 +272,8 @@ class TitanRenderProcessor {
     }
 
 }
+
+
 
 class TitanComponent extends HTMLElement {
     constructor() {
