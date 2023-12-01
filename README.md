@@ -2,6 +2,8 @@
 # Titan RenderProcessor
 a framework to render html dynamically in the frontend, based on JSON-dataobjects and vanilla js webcomponents
 
+[test the framework in the playground](https://lhpbag.site:448/)
+
 # Why?
 
 The Titan TitanRenderProcessor gives you the ability to render html strings dynamically in your frontend, without having the overheat of a big framework. The renderer just exists of one single .js-file witch you can easily integrate in your own project. You can rapidly achieve results in developing dynamic html-components without taking care of querying elements, assigning click logic and so on. Titan RenderProcessor does this for you just with a couple of html attributes.
