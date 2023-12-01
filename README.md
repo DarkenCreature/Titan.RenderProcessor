@@ -1,3 +1,4 @@
+
 # Titan RenderProcessor
 a framework to render html dynamically in the frontend, based on JSON-dataobjects and vanilla js webcomponents
 
@@ -14,11 +15,11 @@ For integrating Titan TitanRenderProcessor in your project, you only have to imp
 ``` html
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-  	<script src="titan-renderer.js"></script>
-  </head>
-  <body></body>
+	<head>
+	<meta charset="UTF-8">
+		 <script src="titan-renderer.js"></script>
+	</head>
+	<body></body>
 </html>
 ```
 
@@ -77,7 +78,7 @@ Let´s say we have the following html element in our document:
 
 ``` html
 <div id="demo">
-  <p>Welcome <span bind-text="FirstName"></span> <span bind-text="LastName"></span>!</p>
+	<p>Welcome <span bind-text="FirstName"></span> <span bind-text="LastName"></span>!</p>
 </div>
 ```
 
@@ -85,8 +86,8 @@ We can call the rendering by executing the following javascript code:
 
 ``` javascript
 new TitanRenderProcessor().renderComponent(
-  document.getElementById('demo'),
-  { LastName: 'Smith', FirstName: 'John' }
+	document.getElementById('demo'),
+	{ LastName: 'Smith', FirstName: 'John' }
 );
 ```
 
@@ -94,13 +95,21 @@ The content of the html-element then changes to this:
 
 ``` html
 <div id="demo">
-  <p>Welcome <span>John</span> <span>Smith</span>!</p>
+	<p>Welcome <span>John</span> <span>Smith</span>!</p>
 </div>
 ```
 
 As you see, we have rendered our html-element with the given dataobject. We can now provide different values to render the html-element with different data.
 
-The important thing here is, that in the final html result, if you inspect your site, it is not possible to comprehend what the html template was looked like. So you can´t manipulate the bindings in the inspector.
+The important thing here is, that in the final html result, if you inspect your site, you will not be possible to comprehend what the actual html template was looked like. So you can´t manipulate the bindings in the inspector so easily. Of course there are ways to do it, but it gets a lot more harder to do.
+
+As said in the intro of this documentation, you are of course be able, to set the rendered value dynamically from an expression. So your template can look something cleaner, with only one span element:
+
+``` html
+<div id="demo">
+	<p>Welcome <span bind-text="{[FirstName] + ' ' + [LastName]}"></span>!</p>
+</div>
+```
 
 ### Example: rendering specific element with a iteration
 
@@ -108,10 +117,10 @@ If you have a dataobject, providing an iteration property, like a array, you can
 
 ``` html
 <div id="demo">
-  <p>Welcome <span bind-text="FirstName"></span> <span bind-text="LastName"></span>!</p>
-  <ul>
-    <li for-each="ProgrammingSkills" bind-text="language"></li>
-  </ul>
+	<p>Welcome <span bind-text="FirstName"></span> <span bind-text="LastName"></span>!</p>
+	<ul>
+		<li for-each="ProgrammingSkills" bind-text="language"></li>
+	</ul>
 </div>
 ```
 
@@ -119,16 +128,16 @@ Now we can render this element providing a more complex dataobject:
 
 ``` javascript
 new TitanRenderProcessor().renderComponent(
-  document.getElementById('demo'),
-  {
-    LastName: 'Smith', FirstName: 'John',
-    ProgrammingSkills: [
-      { language: 'C#', experience: 5 },
-      { language: 'JavaScript', experience: 5 },
-      { language: 'Python', experience: 1 },
-      { language: 'MySQL', experience: 4 }
-    ]
-  }
+	document.getElementById('demo'),
+	{
+	    LastName: 'Smith', FirstName: 'John',
+	    ProgrammingSkills: [
+		    { language: 'C#', experience: 5 },
+		    { language: 'JavaScript', experience: 5 },
+		    { language: 'Python', experience: 1 },
+		    { language: 'MySQL', experience: 4 }
+		]
+	}
 );
 ```
 
@@ -136,13 +145,13 @@ Now the result of the rendering is changing the html-element to this:
 
 ``` html
 <div id="demo">
-  <p>Welcome <span>John</span> <span>Smith</span>!</p>
-  <ul>
-    <li>C#</li>
-    <li>JavaScript</li>
-    <li>Python</li>
-    <li>MySQL</li>
-  </ul>
+	<p>Welcome <span>John</span> <span>Smith</span>!</p>
+	<ul>
+	    <li>C#</li>
+	    <li>JavaScript</li>
+	    <li>Python</li>
+	    <li>MySQL</li>
+	</ul>
 </div>
 ```
 
@@ -152,27 +161,28 @@ Let us take a look at a example. We have the same dataobject, as above, but this
 
 ``` javascript
 new TitanRenderProcessor().renderComponent(
-  document.getElementById('demo'),
-  {
-    LastName: 'Smith', FirstName: 'John',
-    ProgrammingSkills: [
-      'C#', 'JavaScript', 'Python', 'MySQL'
-    ]
-  }
+	document.getElementById('demo'),
+	{
+	    LastName: 'Smith', FirstName: 'John',
+	    ProgrammingSkills: [
+	      'C#', 'JavaScript', 'Python', 'MySQL'
+	    ]
+	}
 );
 ```
 
-In our html-template we now use the self-operator, to bind the string as inner text:
+Now in our html-template we have no property witch can be selected to bind it´s value. But instead, we can use the self-operator ($) to tell Titan RenderProcessor to bind the object itself.
 
 ``` html
 <div id="demo">
-  <p>Welcome <span bind-text="FirstName"></span> <span bind-text="LastName"></span>!</p>
-  <ul>
-    <li for-each="ProgrammingSkills" bind-text="$"></li>
-  </ul>
+	<p>Welcome <span bind-text="FirstName"></span> <span bind-text="LastName"></span>!</p>
+	<ul>
+		<li for-each="ProgrammingSkills" bind-text="$"></li>
+	</ul>
 </div>
 ```
 
+The result that gets rendered is still the same as before.  The only difference between the two examples is, that in one case we took an property of a complex element and in the other we took an array with strings.
 
 
 # Usage of webcomponents
@@ -188,12 +198,27 @@ To get startet, we simply create a custom component named "TestComponent" and im
 
 ``` javascript
 class TestComponent extends TitanComponent {
-  constructor(){
-    super();
-  }
+	constructor(){
+		super();
+	}
 }
 customElements.define('test-component', TestComponent);
 ```
+In your html-code you can use the custom component simply by using the specified html-tag as you do with other html-tags:
+``` html
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+	<meta charset="UTF-8">
+	  	<script src="titan-renderer.js"></script>
+	  	<script src="[path-to-your-component].js"></script>
+	</head>
+	<body>
+		<test-component></test-component>
+	</body>
+</html>
+```
+
 
 > [!IMPORTANT]
 > Always make sure, to define the component by giving it a tag-name, for using it later in html. The Definition is made by calling "customElements.define([tag-name], [className]);"
@@ -204,44 +229,43 @@ Now we implement a template and the render method in our webcomponent. The rende
 
 ``` javascript
 class TestComponent extends TitanComponent {
-  constructor(){
-    super();
-    this.data = {
-      colors: [
-        { name: "Absolute Zero", hex: "#0048BA" },
-        { name: "Acid Green", hex: "#B0BF1A" },
-        { name: "Aero", hex: "#7CB9E8" },
-        { name: "Aero Blue", hex: "#C9FFE5" }
-      ]
-    };
-  }
+	constructor(){
+	    super();
+	    this.data = {
+		    colors: [
+		        { name: "Absolute Zero", hex: "#0048BA" },
+		        { name: "Acid Green", hex: "#B0BF1A" },
+		        { name: "Aero", hex: "#7CB9E8" },
+		        { name: "Aero Blue", hex: "#C9FFE5" }
+		    ]
+	    };
+	}
 
-  // render method
-  render(){
-    this.innerHTML = this.template;
-    new TitanRenderProcessor().renderComponent(this);
-  }
+	// render method
+	render(){
+	    this.innerHTML = this.template;
+	    new TitanRenderProcessor().renderComponent(this);
+	}
 
-  // the template of the component
-  template = `
-      <div>
-        <h1>That are some random colors:</h1>
-        <ul style="list-style: none;">
-          <!-- one list element for all colors -->
-          <li for-each="colors">
-            <div style="display: flex">
-              <!-- round colored point -->
-              <div style="width: 15px; height: 15px; border-radius: 50%; margin-right: 5px;"
-                bind-style="{'background-color: ' + [hex] + ';'}">
-              </div>
-              <!-- end point -->
-
-              <span bind-text="name"></span>
-            </div>
-          </li>
-          <!-- end list element -->
-        </ul>
-      </div>
+	// the template of the component
+	template = `
+	    <div>
+	        <h1>That are some random colors:</h1>
+	        <ul style="list-style: none;">
+		        <!-- one list element for all colors -->
+		        <li for-each="colors">
+			        <div style="display: flex">
+		                <!-- round colored point -->
+			            <div style="width: 15px; height: 15px; border-radius: 50%; margin-right: 5px;"
+					        bind-style="{'background-color: ' + [hex] + ';'}">
+			            </div>
+		                <!-- end point -->
+			            <span bind-text="name"></span>
+		            </div>
+		        </li>
+	            <!-- end list element -->
+	        </ul>
+	    </div>
     `;
 }
 ```
@@ -260,31 +284,31 @@ First we change our template of the component:
 
 ``` javascript
 class TestComponent extends TitanComponent {
-  // [...]
+	// [...]
 
-  // the template of the component
-  template = `
-      <div>
-        <h1>That are some random colors:</h1>
-        <h3>Pick a color to change background</h3>
-        <ul style="list-style: none;">
-          <!-- one list element for all colors -->
-          <li for-each="colors">
-            <div style="display: flex">
-              <!-- round colored point with click handler -->
-              <div style="width: 15px; height: 15px; border-radius: 50%; margin-right: 5px;"
-                bind-style="{'background-color: ' + [hex] + ';'}"
-                bind-click="pickColor" args="Name=name,HexCode=hex">
-              </div>
-              <!-- end point -->
+    // the template of the component
+	template = `
+		<div>
+			<h1>That are some random colors:</h1>
+			<h3>Pick a color to change background</h3>
+			<ul style="list-style: none;">
+				<!-- one list element for all colors -->
+				<li for-each="colors">
+					<div style="display: flex">
+						<!-- round colored point with click handler -->
+						<div style="width: 15px; height: 15px; border-radius: 50%; margin-right: 5px;"
+							bind-style="{'background-color: ' + [hex] + ';'}"
+							bind-click="pickColor" args="Name=name,HexCode=hex">
+						</div>
+						<!-- end point -->
 
-              <span bind-text="name"></span>
-            </div>
-          </li>
-          <!-- end list element -->
-        </ul>
-      </div>
-    `;
+						<span bind-text="name"></span>
+					</div>
+				</li>
+				<!-- end list element -->
+			</ul>
+		</div>
+	`;
 }
 ```
 
@@ -298,13 +322,13 @@ Now we can implement the method to handling the click in our webcomponent:
 
 ``` javascript
 class TestComponent extends TitanComponent {
-  // [...]
+	// [...]
 
-  // method to handle button click
-  pickColor(e, args){
-    alert(`you picked the color '${args.Name}'!`);
-    document.body.setAttribute('style', `background-color: ${args.HexCode};`);
-  }
+	// method to handle button click
+	pickColor(e, args){
+	    alert(`you picked the color '${args.Name}'!`);
+	    document.body.setAttribute('style', `background-color: ${args.HexCode};`);
+	}
 }
 ```
 
