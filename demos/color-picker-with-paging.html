@@ -9,7 +9,7 @@
 		class ColorList extends TitanComponent {
 			constructor(){
 				super();
-				this.data = {
+				this.dataObj = {
 					pageCount: 30,
 					actualPage: 1,
 					isLastPage: false,
@@ -25,23 +25,25 @@
 						{name:"Zomp",hex:"#39A78E"}
 					]
 				};
+				
+				this.data = this.createDeepProxy(this.dataObj);
 			}
 			
 			selectPage(pageNum){
-				this.data.colors = [];
-				var startIndex = (pageNum - 1) * this.data.pageCount;
-				this.data.colorFull.slice([startIndex], [startIndex + this.data.pageCount]).map((item, i) => {
-					this.data.colors.push(item);
+				this.dataObj.colors = [];
+				var startIndex = (pageNum - 1) * this.dataObj.pageCount;
+				this.dataObj.colorFull.slice([startIndex], [startIndex + this.dataObj.pageCount]).map((item, i) => {
+					this.dataObj.colors.push(item);
 				});
 				
-				this.data.actualPage = pageNum;
-				this.data.isFirstPage = pageNum == 1;
-				this.data.isLastPage = startIndex + this.data.pageCount > this.data.colorFull.length;
+				this.dataObj.actualPage = pageNum;
+				this.dataObj.isFirstPage = pageNum == 1;
+				this.dataObj.isLastPage = startIndex + this.dataObj.pageCount > this.dataObj.colorFull.length;
 				this.render();
 			}
 			
 			render(){
-				if(this.data.colors == null) {
+				if(this.dataObj.colors == null) {
 					this.selectPage(1);
 				}
 				
@@ -65,19 +67,22 @@
 							</li>
 							<!-- end list element -->
 						</ul>
+						<div>
+							<span bind-text="{'current Page: ' + [actualPage]}"></span>
+						</div>
 						<div style="display: flex; gap: 5px;">
-							<button bind-click="prevPage"
+							<button bind-click="changePage" args="pageNum={[actualPage] - 1}"
 								bind-class="{[isFirstPage] ? 'inactive' : ''}" bind-attribute="{[isFirstPage] ? 'disabled' : ''}"
 								style="padding: 5px;font: status-bar;">
 								<i class="bi bi-chevron-left"></i> Previous
 							</button>
-							<button bind-click="nextPage"
+							<button bind-click="changePage" args="pageNum={[actualPage] + 1}"
 								bind-class="{[isLastPage] ? 'inactive' : ''}" bind-attribute="{[isLastPage] ? 'disabled' : ''}"
 								style="padding: 5px;font: status-bar;">
 								Next <i class="bi bi-chevron-right"></i>
 							</button>
-							<select bind-change="pageCountChange" bind-value="pageCount" style="padding: 5px;">
-								<option for-each="pageCounts" bind-value="$" bind-text="$"></option>
+							<select bind-change="pageCountChange" bind-value="pageCount" args="value=pageCount" style="padding: 5px;">
+								<option for-each="pageCounts" bind-attribute="{['value', $]}" bind-text="$"></option>
 							</select>
 						</div>
 					</div>
@@ -86,16 +91,12 @@
 				new TitanRenderProcessor().renderComponent(this);
 			}
 			
-			prevPage(e, args){
-				this.selectPage(this.data.actualPage - 1);
-			}
-			
-			nextPage(e, args){
-				this.selectPage(this.data.actualPage + 1);
+			changePage(e, args){
+				this.selectPage(args.pageNum);
 			}
 			
 			pageCountChange(e, args){
-				this.data.pageCount = args.value * 1;
+				this.dataObj.pageCount = args.value * 1;
 				this.selectPage(1);
 			}
 			
