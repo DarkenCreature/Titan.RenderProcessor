@@ -1,5 +1,24 @@
 class TitanRenderProcessor {
 
+	errorCodes = [
+		{ code: 'TTN-RP-091', descr: 'TTN-RP-091: expressions are not allowed for binding of value attributes! Element:' }
+	];
+	
+	getErrMsg(code){
+		return this.errorCodes.filter(c => { return c.code == code })[0].descr;
+	}
+
+	contexts = [
+        { tag: 'bind-text', method: 'bindText' },
+        { tag: 'bind-raw', method: 'bindRaw' },
+        { tag: 'bind-class', method: 'bindClass' },
+        { tag: 'bind-attribute', method: 'bindAttribute' },
+        { tag: 'bind-value', method: 'bindValue' },
+		{ tag: 'bind-style', method: 'bindStyle' },
+		{ tag: 'bind-click', method: 'bindClickEvent' },
+		{ tag: 'bind-change', method: 'bindChangeEvent' }
+    ]
+
     renderComponent(comp, dataObj = null) {
         comp.querySelectorAll('[bind-rerender]').forEach(el => {
             el.template = el.innerHTML;
@@ -7,54 +26,45 @@ class TitanRenderProcessor {
                 tgtElement: el,
                 callBack: (el) => {
                     el.innerHTML = el.template;
-                    new TitanRenderProcessor().render(el, el.closest('[ttn-role]').data, null);
+					var src = el.closest('[ttn-role]');
+					var srcData = dataObj == null ? (src.data == null ? src.dataObj : src.data) : dataObj;
+                    new TitanRenderProcessor().render(el, srcData);
                 }
             });
 
             el.removeAttribute('bind-rerender');
         });
-        this.render(comp, dataObj == null ? comp.data : dataObj, null);
+        this.render(comp, dataObj == null ? (comp.data == null ? comp.dataObj : comp.data) : dataObj, null);
     }
 
-    render(element, contextEl, contextHistory = null) {
+    render(e, c, cH = null) {
         // change context history
-        if (contextHistory == null) {
-            contextHistory = [];
+        if (cH == null) {
+            cH = [];
         }
-        if (typeof (contextEl) == 'object') {
-            contextHistory.push(contextEl);
+        if (typeof (c) == 'object') {
+            cH.push(c);
         }
 
         // render all for-each loops
-        while (element.querySelector('[for-each]') != null) {
-            this.renderForEachLoops(element.querySelector('[for-each]'), contextEl, contextHistory);
+        while (e.querySelector('[for-each]') != null) {
+            this.renderForEachLoops(e.querySelector('[for-each]'), c, cH);
         }
 
         // render self
-        this.renderBindings(element, contextEl, contextHistory);
+        this.renderBindings(e, c, cH);
     }
 
-    renderBindings(element, context, contextHistory) {
-        var contexts = [
-            { tag: 'bind-text', method: 'bindText' },
-            { tag: 'bind-raw', method: 'bindRaw' },
-            { tag: 'bind-class', method: 'bindClass' },
-            { tag: 'bind-attribute', method: 'bindAttribute' },
-            { tag: 'bind-value', method: 'bindValue' },
-			{ tag: 'bind-style', method: 'bindStyle' },
-            { tag: 'bind-click', method: 'bindClickEvent' },
-            { tag: 'bind-change', method: 'bindChangeEvent' }
-        ];
-
+    renderBindings(e, c, cH) {
         var renderer = this;
 		
 		// render ifs
-		element.querySelectorAll(`[if]:not([for-each])`).forEach(e => renderer.renderIf(e, context, contextHistory));
+		e.querySelectorAll(`[if]:not([for-each])`).forEach(e => renderer.renderIf(e, c, cH));
 		
 		// render bindings
-        contexts.forEach(c => {
-            if (element.hasAttribute(c.tag)) { renderer[c.method](element, context, contextHistory); }
-            element.querySelectorAll(`[${c.tag}]`).forEach(e => renderer[c.method](e, context, contextHistory));
+        this.contexts.forEach(f => {
+            if (e.hasAttribute(f.tag)) { renderer[f.method](e, c, cH); }
+            e.querySelectorAll(`[${f.tag}]`).forEach(e => renderer[f.method](e, c, cH));
         });
     }
 	
@@ -68,38 +78,44 @@ class TitanRenderProcessor {
 		}
 	}
 
-    renderForEachLoops(element, context, contextHistory) {
+    renderForEachLoops(e, c, cH) {
         // register inner html as template and assign template
-        var iterator = element.getAttribute('for-each');
-		var ifExpr = element.hasAttribute('if') ? element.getAttribute('if') : null;
-        var holder = element.parentElement;
+        var iterator = e.getAttribute('for-each');
+		var ifExpr = e.hasAttribute('if') ? e.getAttribute('if') : null;
+        var holder = e.parentElement;
         holder.template = holder.innerHTML;
-        holder.tempForEachTemplate = element.outerHTML;
-        element.removeAttribute('for-each');
-        element.removeAttribute('if');
+        holder.tempForEachTemplate = e.outerHTML;
+        e.removeAttribute('for-each');
+        e.removeAttribute('if');
 
         var currHistory = [];
-        contextHistory.forEach(e => { currHistory.push(e); });
+        cH.forEach(e => { currHistory.push(e); });
 
-        var tempDataObj = context;
+        var tempDataObj = c;
         if (iterator == '$') {
-            tempDataObj = context;
+            tempDataObj = c;
+			currHistory.push(c);
         } else {
             if (iterator.indexOf('$') > -1) {
-                tempDataObj = context[iterator.split('$')[1]]
+                tempDataObj = c[iterator.split('$')[1]]
             } else {
                 iterator.split('.').forEach(t => {
-                    currHistory.push(tempDataObj[t])
-                    tempDataObj = tempDataObj[t];
+					tempDataObj = tempDataObj[t];
+                    currHistory.push(tempDataObj);
                 });
-                currHistory.pop();
+                // currHistory.pop();
             }
         }
-        currHistory.push(tempDataObj);
+        // currHistory.push(tempDataObj);
 
+		var added = false;
         tempDataObj.forEach(obj => {
+			if(!added){
+				//currHistory.push(obj);
+			}
+			added = true;
 			if(ifExpr == null || this.dissolveBinding(ifExpr, tempNewEl, obj, currHistory)) {
-				element.insertAdjacentHTML('beforebegin', holder.tempForEachTemplate);
+				e.insertAdjacentHTML('beforebegin', holder.tempForEachTemplate);
 
 				var tempNewEl = holder.querySelector('[for-each]');
 				tempNewEl.removeAttribute('for-each');
@@ -110,8 +126,8 @@ class TitanRenderProcessor {
 			}
         });
 
-        holder.removeChild(element);
-        this.renderBindings(holder, context, currHistory);
+        holder.removeChild(e);
+        this.renderBindings(holder, c, currHistory);
     }
 
     bindText(e, c, cH) {
@@ -141,17 +157,60 @@ class TitanRenderProcessor {
         var path = e.getAttribute('bind-attribute');
         var value = this.dissolveBinding(path, e, c, cH);
         if ((value ?? '') != '') {
-			e.setAttribute(value, '');
+			if(typeof(value) == 'object' || typeof(value) == 'array') {
+				e.setAttribute(value[0], value[1]);
+			} else {
+				e.setAttribute(value, '');
+			}
         }
         e.removeAttribute('bind-attribute');
     }
 	
 	bindValue(e, c, cH) {
         var path = e.getAttribute('bind-value');
-        var value = this.dissolveBinding(path, e, c, cH);
-        if ((value ?? '') != '') {
-			e.value = value;
-        }
+		if(path.substring(0, 1) == "{")
+		{
+			this.errorCodes.filter(c => {})
+			console.error(`TTN-RP-091: ${this.getErrMsg('TTN-RP-091')}`, e);
+		}
+		else
+		{
+			var value = this.dissolveBinding(path, e, c, cH);
+			if ((value ?? '') != '') {
+				e.value = value;
+			}
+			e.$__binding = {
+				context: path == '$' ? cH[cH.length - 1] : c,
+				index: path == '$' ? cH[cH.length - 1].indexOf(value) : null,
+				path: path
+			};
+			
+			// create bind reference
+			var bindReference = {
+				context: e.$__binding.context,
+				property: (e.$__binding.index ?? e.$__binding.path),
+				object: e
+			};
+			
+			// push new
+			var bindings = e.closest('[ttn-role]').$__stateManager.bindedVariables;
+			if(bindings.filter(b => { return
+				b.context == bindReference.context
+				&& b.property == bindReference.property
+				&& b.object == bindReference.object;
+			}).length == 0) {
+				bindings.push(bindReference);
+			}
+			
+			e.addEventListener("change", function(){
+				if(this.$__binding.index == null) {
+					this.$__binding.context[this.$__binding.path] = this.value;
+				} else {
+					this.$__binding.context[this.$__binding.index] = this.value;
+				}
+			});
+		}
+		
         e.removeAttribute('bind-value');
     }
 	
@@ -170,73 +229,45 @@ class TitanRenderProcessor {
 		return ((path.substring(0, 1) == "{") ? this.getBindingExpression(c, cH, path) : this.getBindingValue(c, cH, path));
 	}
 
-    getBindingExpression(context, contextHistory, path) {
+    getBindingExpression(c, cH, path) {
         var regex = /\[[A-Z|a-z|0-9|.|\/| ]{0,99}\]/g;
         var matches = path.match(regex);
         if (matches != null) {
             matches.forEach(m => {
-                var value = this.getBindingValue(context, contextHistory, m.slice(1, -1));
+                var value = this.getBindingValue(c, cH, m.slice(1, -1));
                 if (typeof (value) == 'string') {
                     value = `'${value}'`;
                 }
                 path = path.replace(m, value);
             });
         }
+		
+		path = path.replace('$', (typeof(c) == 'string' ? `${c}` : c));
         return eval(path.slice(1, -1));
     }
 
-    getBindingValue(context, contextHistory, path) {
+    getBindingValue(c, cH, path) {
         if (path == "$") {
-            return context ?? '';
+            return c ?? '';
         } else {
             var count = (path.match(/.\//g) || []).length;
             path = path.replaceAll('./', '');
 
             if (count == 0) {
                 try {
-                    return context[path] ?? '';
+                    return c[path] ?? '';
                 } catch {
                     return '';
                 }
             } else {
                 try {
-                    return contextHistory[contextHistory.length - 1 - count][path] ?? '';
+                    return cH[cH.length - 1 - count][path] ?? '';
                 } catch {
                     return '';
                 }
             }
         }
     }
-
-	bindChangeEvent(e, c, cH) {
-		var path = e.getAttribute('bind-change');
-        var value = this.dissolveBinding(path, e, c, cH);
-        if (value || null && value || '' || path.substring(0, 1) == "{") {
-            value = value;
-        } else {
-            value = path;
-        }
-
-        if (value != null && value != '')
-        {
-            e.clickHandler = {
-                method: value,
-                target: e.closest(`[ttn-role="${(e.getAttribute('bind-target') ?? 'component')}"]`),
-                args: {}
-            };
-			this.fetchArgs(e, c, cH);
-
-            e.addEventListener('change', function () {
-				this.clickHandler.args.value = this.value;
-                this.clickHandler.target[this.clickHandler.method](this, this.clickHandler.args);
-            });
-            e.style.cursor = 'pointer';
-        }
-
-        e.removeAttribute('bind-change');
-        e.removeAttribute('bind-target');
-        e.removeAttribute('args');
-	}
 	
 	fetchArgs(e, c, cH) {
 		if (e.getAttribute('args') != null) {
@@ -246,12 +277,14 @@ class TitanRenderProcessor {
 
                 if (a.split('=').length == 2) {
 					argName = a.split('=')[0];
-                    argValue = this.getBindingValue(c, cH, a.split('=')[1]);
+                    // argValue = this.getBindingValue(c, cH, a.split('=')[1]);
+					argValue = this.dissolveBinding(a.split('=')[1], null, c, cH);
                 } else {
-					argValue = this.getBindingValue(c, cH, a);
+					// argValue = this.getBindingValue(c, cH, a);
+					argValue = this.dissolveBinding(a, null, c, cH);
                 }
 
-                e.clickHandler.args[argName] = argValue;
+                e.$__clickHandler.args[argName] = argValue;
             });
         }
 	}
@@ -268,7 +301,7 @@ class TitanRenderProcessor {
 
         if (value != null && value != '')
         {
-            e.clickHandler = {
+            e.$__clickHandler = {
                 method: value, // e.getAttribute('bind-click'),
                 target: e.closest(`[ttn-role="${(e.getAttribute('bind-target') ?? 'component')}"]`),
                 args: {}
@@ -276,7 +309,7 @@ class TitanRenderProcessor {
 			this.fetchArgs(e, c, cH);
 
             e.addEventListener('click', function () {
-                this.clickHandler.target[this.clickHandler.method](this, this.clickHandler.args);
+                this.$__clickHandler.target[this.$__clickHandler.method](this, this.$__clickHandler.args);
             });
             e.style.cursor = 'pointer';
         }
@@ -285,6 +318,36 @@ class TitanRenderProcessor {
         e.removeAttribute('bind-target');
         e.removeAttribute('args');
     }
+
+	bindChangeEvent(e, c, cH) {
+		var path = e.getAttribute('bind-change');
+        var value = this.dissolveBinding(path, e, c, cH);
+        if (value || null && value || '' || path.substring(0, 1) == "{") {
+            value = value;
+        } else {
+            value = path;
+        }
+
+        if (value != null && value != '')
+        {
+            e.$__clickHandler = {
+                method: value,
+                target: e.closest(`[ttn-role="${(e.getAttribute('bind-target') ?? 'component')}"]`),
+                args: {}
+            };
+			this.fetchArgs(e, c, cH);
+
+            e.addEventListener('change', function () {
+				this.$__clickHandler.args.value = this.value;
+                this.$__clickHandler.target[this.$__clickHandler.method](this, this.$__clickHandler.args);
+            });
+            e.style.cursor = 'pointer';
+        }
+
+        e.removeAttribute('bind-change');
+        e.removeAttribute('bind-target');
+        e.removeAttribute('args');
+	}
 
 }
 
@@ -295,7 +358,10 @@ class TitanComponent extends HTMLElement {
         super();
         this._state = {};
         this.$__eventSheduler = [];
-    }
+		this.$__stateManager = {
+			bindedVariables: []
+		};
+    }	
 
     getRemoveAttribute(attributName) {
         var value = this.getAttribute(attributName);
@@ -319,18 +385,38 @@ class TitanComponent extends HTMLElement {
     }
 
     connectedCallback() {
-        this.preRender();
+        this.preInitialRender();
         this.render();
     }
 
-    preRender() {
+    preInitialRender() {
         if (!this.hasAttribute('[ttn-role]')) {
             this.setAttribute('ttn-role', 'component');
         }
     }
+	
+	// event after set prop
+	preSetProp(target, property, value){
+		return true;
+	}
+	
+	// event after changed prop
+	postSetProp(target, property, value){
+	}
+	
+	refreshBindings(target, property, value){
+		var relBindings = this.$__stateManager.bindedVariables.filter(b => {
+			return b.property == property && JSON.stringify(target) == JSON.stringify(b.context);
+		});
+		relBindings.forEach(b => {
+			b.object.value = value;
+		});
+	}
 
+	// creates a deep proxy on a data object
     createDeepProxy(obj, parent = null) {
         let handler = {
+			path: 'test',
             get: (target, property) => {
                 // access to property
                 const value = target[property];
@@ -338,8 +424,12 @@ class TitanComponent extends HTMLElement {
             },
             set: (target, property, value) => {
                 // set / change property
-                target[property] = value;
-                this.render();
+				if(this.preSetProp(target, property, value)) {
+					target[property] = value;
+				}
+				
+				this.refreshBindings(target, property, value);
+				this.postSetProp(target, property, value);
                 return true;
             }
         };
