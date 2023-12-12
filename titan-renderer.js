@@ -196,7 +196,7 @@ class TitanRenderProcessor {
 
         e.$__binding = {
             context: e.getAttribute(tag) == '$' ? cH[cH.length - 1] : c,
-            index: e.getAttribute(tag) == '$' ? cH[cH.length - 1].indexOf(value) : null,
+            index: e.getAttribute(tag) == '$' ? cH[cH.length - 1].indexOf(bindProp) : null,
             path: e.getAttribute(tag),
             target: bindProp
         };
