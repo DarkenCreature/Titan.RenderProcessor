@@ -196,7 +196,7 @@ class TitanRenderProcessor {
 
         e.$__binding = {
             context: e.getAttribute(tag) == '$' ? cH[cH.length - 1] : c,
-            index: e.getAttribute(tag) == '$' ? cH[cH.length - 1].indexOf(bindProp) : null,
+            index: e.getAttribute(tag) == '$' ? cH[cH.length - 1].indexOf(c) : null,
             path: e.getAttribute(tag),
             target: bindProp
         };
@@ -219,6 +219,7 @@ class TitanRenderProcessor {
 			property: prop,
             target: e.$__binding.target,
             path: e.$__binding.path,
+			index: e.$__binding.index,
 			object: e
 		};
 			
@@ -250,13 +251,15 @@ class TitanRenderProcessor {
             // create binding
             this.createBindings(e, c, cH, 'bind-value', 'value');
 
-			e.addEventListener("change", function(){
-				if(this.$__binding.index == null) {
-					this.$__binding.context[this.$__binding.path] = this.value;
-				} else {
-					this.$__binding.context[this.$__binding.index] = this.value;
-				}
-			});
+			if(e.tagName == 'INPUT') {
+				e.addEventListener("change", function(){
+					if(this.$__binding.index == null) {
+						this.$__binding.context[this.$__binding.path] = this.value;
+					} else {
+						this.$__binding.context[this.$__binding.index] = this.value;
+					}
+				});
+			}
 		}
 		
         e.removeAttribute('bind-value');
@@ -318,6 +321,7 @@ class TitanRenderProcessor {
     }
 	
 	fetchArgs(e, c, cH) {
+		e.$__clickHandler.args['value'] = e.value;
 		if (e.getAttribute('args') != null) {
             e.getAttribute('args').split(',').forEach(a => {
 				var argName = a;
@@ -385,8 +389,8 @@ class TitanRenderProcessor {
             };
 			this.fetchArgs(e, c, cH);
 
-            e.addEventListener('change', function () {
-				this.$__clickHandler.args.value = this.value;
+            e.addEventListener('change', function(){
+				this.$__clickHandler.args['value'] = this.value;
                 this.$__clickHandler.target[this.$__clickHandler.method](this, this.$__clickHandler.args);
             });
             e.style.cursor = 'pointer';
@@ -437,8 +441,13 @@ class TitanComponent extends HTMLElement {
 
     connectedCallback() {
         this.preInitialRender();
+		this.data = this.createDeepProxy(this.$__state.data);
         this.render();
     }
+	
+	clearBindings(){
+		this.$__stateManager.bindedVariables = [];
+	}
 
     preInitialRender() {
         if (!this.hasAttribute('[ttn-role]')) {
@@ -455,17 +464,20 @@ class TitanComponent extends HTMLElement {
 	postSetProp(target, property, value){
 	}
 	
-	refreshBindings(target, property, value){
+	refreshBindings(target, property, value) {
+		
 		var relBindings = this.$__stateManager.bindedVariables.filter(b => {
-			return b.property == property && JSON.stringify(target) == JSON.stringify(b.context);
+			return (b.property == property && JSON.stringify(target) == JSON.stringify(b.context))
+				|| (b.path == '$' && JSON.stringify(b.context) == JSON.stringify(target) && b.index == property);
 		});
+		
 		relBindings.forEach(b => {
             switch(b.target) {
                 case 'class':
                     if(b.object.bindedClass != null) {
                         b.object.classList.remove(b.object.bindedClass);
                     }
-                    var classVal = this.$__stateManager.renderer.dissolveBinding(b.path, b.context, b.context, b.context);
+                    var classVal = this.$__stateManager.renderer.dissolveBinding('' + b.index ?? b.path, b.context, b.context, b.context, b.index);
                     if(classVal != null && classVal != '') {
                         b.object.classList.add(classVal);
                         b.object.bindedClass = classVal;
@@ -476,7 +488,7 @@ class TitanComponent extends HTMLElement {
                     if(b.object.bindedAttribute != null) {
                         b.object.removeAttribute(b.object.bindedAttribute);
                     }
-                    var attribVal = this.$__stateManager.renderer.dissolveBinding(b.path, b.context, b.context, b.context);
+                    var attribVal = this.$__stateManager.renderer.dissolveBinding('' + b.index ?? b.path, b.context, b.context, b.context, b.index);
                     if ((attribVal ?? '') != '') {
                         if(typeof(attribVal) == 'object' || typeof(attribVal) == 'array') {
                             b.object.bindedAttribute = attribVal[0];
@@ -489,7 +501,7 @@ class TitanComponent extends HTMLElement {
                     break;
 
                 default:
-                    b.object[b.target] = this.$__stateManager.renderer.dissolveBinding(b.path, b.context, b.context, b.context);
+                    b.object[b.target] = this.$__stateManager.renderer.dissolveBinding('' + (b.index ?? b.path), b.context, b.context, b.context);
                     break;
             }
 		});
