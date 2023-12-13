@@ -251,7 +251,7 @@ class TitanRenderProcessor {
             // create binding
             this.createBindings(e, c, cH, 'bind-value', 'value');
 
-			if(e.tagName == 'INPUT') {
+			if(e.tagName == 'INPUT' || (e.tagName == 'SELECT' && !e.hasAttribute('bind-change'))) {
 				e.addEventListener("change", function(){
 					if(this.$__binding.index == null) {
 						this.$__binding.context[this.$__binding.path] = this.value;
@@ -477,7 +477,7 @@ class TitanComponent extends HTMLElement {
                     if(b.object.bindedClass != null) {
                         b.object.classList.remove(b.object.bindedClass);
                     }
-                    var classVal = this.$__stateManager.renderer.dissolveBinding('' + b.index ?? b.path, b.context, b.context, b.context, b.index);
+                    var classVal = this.$__stateManager.renderer.dissolveBinding('' + (b.index ?? b.path), b.context, b.context, b.context);
                     if(classVal != null && classVal != '') {
                         b.object.classList.add(classVal);
                         b.object.bindedClass = classVal;
@@ -488,7 +488,7 @@ class TitanComponent extends HTMLElement {
                     if(b.object.bindedAttribute != null) {
                         b.object.removeAttribute(b.object.bindedAttribute);
                     }
-                    var attribVal = this.$__stateManager.renderer.dissolveBinding('' + b.index ?? b.path, b.context, b.context, b.context, b.index);
+                    var attribVal = this.$__stateManager.renderer.dissolveBinding('' + (b.index ?? b.path), b.context, b.context, b.context);
                     if ((attribVal ?? '') != '') {
                         if(typeof(attribVal) == 'object' || typeof(attribVal) == 'array') {
                             b.object.bindedAttribute = attribVal[0];
