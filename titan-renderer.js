@@ -169,6 +169,7 @@ class TitanRenderProcessor {
         if ((value ?? '') != '') {
             e.classList.add(value);
         }
+        
         e.removeAttribute('bind-class');
     }
 	
@@ -180,7 +181,8 @@ class TitanRenderProcessor {
         this.createBindings(e, c, cH, 'bind-attribute', 'attribute');
 
         if ((value ?? '') != '') {
-			if(typeof(value) == 'object' || typeof(value) == 'array') {
+			// if is array -> first is attribute, second is value
+            if(typeof(value) == 'object' || typeof(value) == 'array') {
 				e.bindedAttribute = value[0];
                 e.setAttribute(value[0], value[1]);
 			} else {
@@ -193,7 +195,7 @@ class TitanRenderProcessor {
     }
 
     createBindings(e, c, cH, tag, bindProp) {
-
+        // build binding handler
         e.$__binding = {
             context: e.getAttribute(tag) == '$' ? cH[cH.length - 1] : c,
             index: e.getAttribute(tag) == '$' ? cH[cH.length - 1].indexOf(c) : null,
@@ -201,13 +203,16 @@ class TitanRenderProcessor {
             target: bindProp
         };
 
+        // replace all properties with actual value
         var regex = /\[[A-Z|a-z|0-9|.|\/| ]{0,99}\]/g;
         var matches = e.getAttribute(tag).match(regex);
         if (matches != null) {
+            // register binding for each property in calculation
             matches.forEach(m => {
                 this.registerBinding(e, m.slice(1, -1));
             });
         } else {
+            // register binding for whole expression
             this.registerBinding(e, e.getAttribute(tag));
         }
     }
@@ -223,7 +228,7 @@ class TitanRenderProcessor {
 			object: e
 		};
 			
-		// push new
+		// push reference to binndings if not already exists
 		var bindings = e.closest('[ttn-role]').$__stateManager.bindedVariables;
 		if(bindings.filter(b => { return
 			b.context == bindReference.context
@@ -320,22 +325,27 @@ class TitanRenderProcessor {
         }
     }
 	
-	fetchArgs(e, c, cH) {
-		e.$__clickHandler.args['value'] = e.value;
+	fetchArgs(e, c, cH, ignoreValue = false) {
+        // ignore value when is click handler
+        if(!ignoreValue) {
+            e.$__clickHandler.args['value'] = e.value;
+        }
+
+        // fetch all arguments
 		if (e.getAttribute('args') != null) {
             e.getAttribute('args').split(',').forEach(a => {
 				var argName = a;
                 var argValue = null;
 
+                // if alias is used => fetch values with correct arg-name
                 if (a.split('=').length == 2) {
 					argName = a.split('=')[0];
-                    // argValue = this.getBindingValue(c, cH, a.split('=')[1]);
 					argValue = this.dissolveBinding(a.split('=')[1], null, c, cH);
                 } else {
-					// argValue = this.getBindingValue(c, cH, a);
 					argValue = this.dissolveBinding(a, null, c, cH);
                 }
 
+                // assign arguments
                 e.$__clickHandler.args[argName] = argValue;
             });
         }
@@ -353,19 +363,24 @@ class TitanRenderProcessor {
 
         if (value != null && value != '')
         {
+            // build basic handler
             e.$__clickHandler = {
-                method: value, // e.getAttribute('bind-click'),
-                target: e.closest(`[ttn-role="${(e.getAttribute('bind-target') ?? 'component')}"]`),
+                method: value,
+                // if no bind target is set => take closest
+                target: e.closest(e.getAttribute('bind-target') == null ? '[ttn-role]' : `[ttn-role="${e.getAttribute('bind-target')}"]`),
                 args: {}
             };
-			this.fetchArgs(e, c, cH);
 
+            // get arguments for handler and assign handler with event
+			this.fetchArgs(e, c, cH, true);
             e.addEventListener('click', function () {
                 this.$__clickHandler.target[this.$__clickHandler.method](this, this.$__clickHandler.args);
             });
+
             e.style.cursor = 'pointer';
         }
 
+        // remove attributes
         e.removeAttribute('bind-click');
         e.removeAttribute('bind-target');
         e.removeAttribute('args');
@@ -424,19 +439,45 @@ class TitanComponent extends HTMLElement {
         return value;
     }
 
-    raiseEvent(eventName) {
-        if (this.$__eventSheduler[eventName] != null) {
-            this.$__eventSheduler[eventName].forEach(e => {
-                e.callBack(e.tgtElement);
-            });
+    methodExists(mN) {
+        return this[mN] != null && typeof(this[mN]) == 'function';
+    }
+
+    raiseEvent(eN) {
+        // if preEventRaise doesnt exist or exists and is true
+        if(!this.methodExists('preEventRaise')
+            || (
+                this.methodExists('preEventRaise')
+                && this['preEventRaise'](eN)
+            )
+        ) {
+            // trigger registered callbacks
+            if (this.$__eventSheduler[eN] != null) {
+                this.$__eventSheduler[eN].forEach(e => {
+                    e.callBack(e.tgtElement);
+                });
+            }
+
+            // trigger event-method if exists
+            if(this.methodExists(eN)) {
+                this[eN]();
+            }
+
+            // trigger post method if exists
+            if(this.methodExists('postEventRaise')) {
+                this['postEventRaise'](eN);
+            }    
         }
     }
 
-    registerEvent(eventName, handler) {
-        if (this.$__eventSheduler[eventName] == null) {
-            this.$__eventSheduler[eventName] = [];
+    registerEvent(eN, hdlr) {
+        // if event is not existing already -> create
+        if (this.$__eventSheduler[eN] == null) {
+            this.$__eventSheduler[eN] = [];
         }
-        this.$__eventSheduler[eventName].push(handler);
+
+        // register handler to event
+        this.$__eventSheduler[eN].push(hdlr);
     }
 
     connectedCallback() {
@@ -446,10 +487,12 @@ class TitanComponent extends HTMLElement {
     }
 	
 	clearBindings(){
+        // delete bindings from state manager
 		this.$__stateManager.bindedVariables = [];
 	}
 
     preInitialRender() {
+        // if no role-attribute is provided -> register as component
         if (!this.hasAttribute('[ttn-role]')) {
             this.setAttribute('ttn-role', 'component');
         }
